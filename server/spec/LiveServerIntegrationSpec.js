@@ -1,4 +1,4 @@
-var request = require('request');
+var request = require('../request-handler');
 var expect = require('chai').expect;
 
 describe('server', function() {
