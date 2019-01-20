@@ -1,3 +1,59 @@
+var headers = {
+  'access-control-allow-origin': '*',
+  'access-control-allow-methods': 'GET, POST, PUT, DELETE, OPTIONS',
+  'access-control-allow-headers': 'content-type, accept',
+  'access-control-max-age': 10, // Seconds.
+  'Content-Type': 'application/json'
+};
+
+
+var storage = {
+  results: []
+};
+
+var sendResponse = function(response, data, statusCode) {
+  response.writeHead(statusCode, headers);
+  response.end(JSON.stringify(data));
+}
+
+var requestHandler = function(request, response) {
+  var statusCode;
+  var data = [];
+
+  console.log('Serving request type ' + request.method + ' for url ' + request.url);
+
+  if (request.method === 'GET' || request.method === 'OPTIONS') {
+    // sendResponse(response, storage, 200);
+    response.writeHead(statusCode, headers);
+    response.end(JSON.stringify(data));
+
+  } else if (request.method === 'POST') {
+    request.on('data', (chunk) => {
+      data.push(chunk);
+    });
+
+    request.on('end', () => {
+      data = JSON.parse(data);
+      data['objectId'] = storage.results.length;
+      storage.results.push(data);
+      console.log(storage.results);
+      // sendResponse(response, storage, 201);
+      response.writeHead(statusCode, headers);
+      response.end(JSON.stringify(data));
+    });
+
+  } else {
+    // sendResponse(response, storage, 404);
+    response.writeHead(statusCode, headers);
+    response.end(JSON.stringify(data));
+  }
+
+};
+
+
+
+exports.requestHandler = requestHandler;
+
 /*************************************************************
 
 You should implement your request handler function in this file.
@@ -11,19 +67,6 @@ this file and include it in basic-server.js so that it actually works.
 *Hint* Check out the node module documentation at http://nodejs.org/api/modules.html.
 
 **************************************************************/
-var storage = {
-  results: [
-    {
-      username: 'user',
-      text: 'hi',
-      roomname: 'lobby',
-      objectId: 1
-    }
-  ]
-};
-
-var requestHandler = function(request, response) {
-
 
   // Request and Response come from node's http module.
   //
@@ -39,23 +82,18 @@ var requestHandler = function(request, response) {
   // Adding more logging to your server can be an easy way to get passive
   // debugging help, but you should always be careful about leaving stray
   // console.logs in your code.
-  console.log('Serving request type ' + request.method + ' for url ' + request.url);
 
   // The outgoing status.
-  var statusCode = 200;
 
   // See the note below about CORS headers.
-  var headers = defaultCorsHeaders;
 
   // Tell the client we are sending them plain text.
   //
   // You will need to change this if you are sending something
   // other than plain text, like JSON or HTML.
-  headers['Content-Type'] = 'application/json';
 
   // .writeHead() writes to the request line and headers of the response,
   // which includes the status and all headers.
-  response.writeHead(statusCode, headers);
 
   // Make sure to always call response.end() - Node may not send
   // anything back to the client until you do. The string you pass to
@@ -64,10 +102,6 @@ var requestHandler = function(request, response) {
   //
   // Calling .end "flushes" the response's internal buffer, forcing
   // node to actually send all the data over to the client.
-  console.log(request);
-  console.log(response);
-  response.end(JSON.stringify(storage));
-};
 
 // These headers will allow Cross-Origin Resource Sharing (CORS).
 // This code allows this server to talk to websites that
@@ -78,23 +112,3 @@ var requestHandler = function(request, response) {
 //
 // Another way to get around this restriction is to serve you chat
 // client from this domain by setting up static file serving.
-var defaultCorsHeaders = {
-  'access-control-allow-origin': '*',
-  'access-control-allow-methods': 'GET, POST, PUT, DELETE, OPTIONS',
-  'access-control-allow-headers': 'content-type, accept',
-  'access-control-max-age': 10 // Seconds.
-};
-
-  // var actions = {
-  // 'GET': function(request, response) {
-  //   utilities.sendResponse(response, {results: messages});
-  // }};
-  // module.exports = function(request, response) {
-  //   var action = actions[request.method];
-  //   if (action) action(request, response);
-  //   else utilities.sendResponse(response, 'Not Found', 404);
-  // };
-
-
-
-exports.requestHandler = requestHandler;
